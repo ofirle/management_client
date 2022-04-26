@@ -11,7 +11,7 @@ const ProjectInfo = props => {
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im9maXJsZSIsImlhdCI6MTY0MTk4Mzg3OCwiZXhwIjoxNjQxOTg3NDc4fQ.dvq2ZwFzoZdR-G7PMjV3-ylSIY3W6KJtDvELcmK5U3Y'
+                // 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im9maXJsZSIsImlhdCI6MTY0MTk4Mzg3OCwiZXhwIjoxNjQxOTg3NDc4fQ.dvq2ZwFzoZdR-G7PMjV3-ylSIY3W6KJtDvELcmK5U3Y'
             }
         })
             .then(response => response.json())
