@@ -1,4 +1,4 @@
-import ProjectsList from "../components/projects/ProjectsList";
+import ProjectsList from "../../projects/ProjectsList";
 import {useContext, useEffect, useState} from "react";
 import {AuthContext} from "../../shared/context/auth-context";
 import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";

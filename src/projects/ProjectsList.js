@@ -1,7 +1,7 @@
 import React from 'react';
 
 import ProjectItem from './ProjectItem';
-import Card from '../../../shared/components/UIElements/Card';
+import Card from '../shared/components/UIElements/Card';
 import './ProjectsList.css';
 
 const ProjectsList = props => {

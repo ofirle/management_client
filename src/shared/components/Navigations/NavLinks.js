@@ -15,7 +15,13 @@ const NavLinks = props => {
                 <NavLink to="/">Transactions</NavLink>
             </li>
             <li>
+                <NavLink to="/rules">Rules</NavLink>
+            </li>
+            <li>
                 <NavLink to="/new">Add Project</NavLink>
+            </li>
+            <li>
+                <NavLink to="/roles">Roles</NavLink>
             </li>
             <li>
                 <button onClick={auth.logout}>LOGOUT</button>

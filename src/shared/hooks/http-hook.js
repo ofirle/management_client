@@ -5,6 +5,10 @@ export const useHttpClient = () => {
   const [error, setError] = useState();
 
   const activeHttpRequests = useRef([]);
+  const basicHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+  }
 
   const sendRequest = useCallback(
     async (url, method = 'GET', body = null, headers = {}) => {
@@ -16,7 +20,7 @@ export const useHttpClient = () => {
         const response = await fetch(url, {
           method,
           body,
-          headers,
+          headers: { ...basicHeaders, ...headers },
           signal: httpAbortCtrl.signal
         });
         const responseData = await response.json();
