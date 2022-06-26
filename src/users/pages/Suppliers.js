@@ -2,6 +2,7 @@ import {useContext, useEffect, useState} from "react";
 import {AuthContext} from "../../shared/context/auth-context";
 import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 import {useHttpClient} from "../../shared/hooks/http-hook";
+import {httpMethods} from "../../shared/hooks/enum";
 
 const Suppliers = () => {
     const auth = useContext(AuthContext);
@@ -10,12 +11,7 @@ const Suppliers = () => {
 
     useEffect(async () => {
         try {
-            const responseData = await sendRequest('http://localhost:3000/suppliers', 'GET', null, {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-                    'Authorization': 'Bearer ' + auth.token
-                }
-            )
+            const responseData = await sendRequest(`${process.env.REACT_APP_SERVER_URL}/suppliers`, httpMethods.Get, auth.token)
             setSuppliersList(responseData);
         }
         catch ( err ) {
