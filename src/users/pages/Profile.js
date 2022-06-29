@@ -43,10 +43,7 @@ const Profile = () => {
       auth.token,
       JSON.stringify({
         ...userDate
-      }),
-      {
-        'Content-Type': 'application/json'
-      }
+      })
     );
   };
 

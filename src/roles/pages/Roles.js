@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../shared/context/auth-context';
 import { useHttpClient } from '../../shared/hooks/http-hook';
 import 'antd/dist/antd.min.css';
@@ -28,27 +28,19 @@ const permissionsOptions = [];
 
 const Roles = () => {
   const auth = useContext(AuthContext);
-  const { isLoading, error, sendRequest, clearError } = useHttpClient();
+  const { sendRequest } = useHttpClient();
   const [dataTest, setDataTest] = useState([]);
-  const [isLoadingColumns, setIsLoadingColumns] = useState(true);
   const [permissions, setPermissions] = useState([]);
-  const [actionOptions, setActionsOptions] = useState([]);
   const [isAddRoleModalVisible, setAddRoleModalVisible] = useState(false);
-  const [isEditMode, setEditMode] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(async () => {
     const permissionsData = await getPermissions();
-    console.log(permissionsData);
     permissionsData.forEach((permission) => {
       permissionsOptions.push(<Option key={permission.action}>{permission.title}</Option>);
     });
     setPermissions(permissionsData);
-    // setActionsOptions(permissionsOptions);
-    console.log(permissionsData);
     await reloadData();
-
-    // getColumns()
   }, []);
 
   const onFinish = async (values) => {
@@ -116,10 +108,7 @@ const Roles = () => {
       JSON.stringify({
         title: title,
         actions: actions
-      }),
-      {
-        'Content-Type': 'application/json'
-      }
+      })
     );
   };
 
@@ -130,10 +119,7 @@ const Roles = () => {
       auth.token,
       JSON.stringify({
         value: value
-      }),
-      {
-        'Content-Type': 'application/json'
-      }
+      })
     );
   };
 
@@ -145,10 +131,7 @@ const Roles = () => {
       JSON.stringify({
         title: title,
         actions: actions
-      }),
-      {
-        'Content-Type': 'application/json'
-      }
+      })
     );
   };
 
@@ -170,7 +153,7 @@ const Roles = () => {
 
     const actions = [];
     permissions.forEach((permission) => {
-      if (record.hasOwnProperty(permission.action)) {
+      if (Object.prototype.hasOwnProperty.call(permission.action, record)) {
         actions.push(permission.action);
       }
     });
@@ -179,7 +162,6 @@ const Roles = () => {
       title: record.title,
       actions: actions
     });
-    setEditMode(true);
     setAddRoleModalVisible(true);
   };
 
@@ -202,7 +184,7 @@ const Roles = () => {
         title: permission.title,
         dataIndex: permission.action,
         key: permission.action,
-        render: (text, record, index) => (
+        render: (text, record) => (
           <Checkbox
             checked={text}
             name={{ ...record, action: permission.action }}
@@ -275,7 +257,6 @@ const Roles = () => {
 
   const handleCancel = () => {
     setAddRoleModalVisible(false);
-    setEditMode(false);
   };
 
   return (

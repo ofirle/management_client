@@ -77,10 +77,7 @@ const Auth = () => {
           JSON.stringify({
             username: formState.inputs.username.value,
             password: formState.inputs.password.value
-          }),
-          {
-            'Content-Type': 'application/json'
-          }
+          })
         );
         const authUser = responseData.data;
         auth.login(authUser.id, authUser.accessToken);
@@ -101,6 +98,7 @@ const Auth = () => {
           httpMethods.Post,
           formData
         );
+        console.log(responseData);
         setIsLoginMode(true);
       } catch (err) {
         console.log(err);

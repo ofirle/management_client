@@ -1,114 +1,17 @@
 import React, { useContext, useEffect, useState } from 'react';
 import 'antd/dist/antd.css';
-import {
-  Button,
-  Cascader,
-  Divider,
-  Form,
-  Input,
-  Space,
-  InputNumber,
-  Radio,
-  Col,
-  Table,
-  Row,
-  TreeSelect
-} from 'antd';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { Col, Row, Table } from 'antd';
 import { AuthContext } from '../../shared/context/auth-context';
 import { useHttpClient } from '../../shared/hooks/http-hook';
 import { httpMethods } from '../../shared/hooks/enum';
-
-const formItemLayout = {
-  layout: 'horizontal',
-  labelCol: {
-    xs: { span: 6 }
-  },
-  wrapperCol: {
-    xs: { span: 24 }
-  }
-};
-
-const conditionsOptions = [
-  {
-    value: 'title',
-    label: 'Title',
-    children: [
-      {
-        value: 'EQUAL',
-        label: 'Equal'
-      },
-      {
-        value: 'CONTAINS',
-        label: 'Contains'
-      },
-      {
-        value: 'START_WITH',
-        label: 'Start With'
-      },
-      {
-        value: 'END_WITH',
-        label: 'End With'
-      }
-    ]
-  },
-  {
-    value: 'price',
-    label: 'Price',
-    children: [
-      {
-        value: 'EQUAL',
-        label: 'Equal'
-      },
-      {
-        value: 'BETWEEN',
-        label: 'Between'
-      },
-      {
-        value: 'GREATER_THEN',
-        label: 'Greater Then'
-      },
-      {
-        value: 'LESS_THEN',
-        label: 'Less Then'
-      }
-    ]
-  },
-  {
-    value: 'source',
-    label: 'Source',
-    children: [
-      {
-        value: 'BANK_HAPOALIM',
-        label: 'Bank Hapoalim'
-      },
-      {
-        value: 'ISRACARD',
-        label: 'Isracard'
-      }
-    ]
-  }
-];
-
-const validateMessages = {
-  required: '${label} is required!',
-  types: {
-    email: '${label} is not a valid email!',
-    number: '${label} is not a valid number!'
-  },
-  number: {
-    range: '${label} must be between ${min} and ${max}'
-  }
-};
+import CreateRule from '../../roles/components/createRule';
 
 const Rules = () => {
   const auth = useContext(AuthContext);
   const { sendRequest } = useHttpClient();
-  const [form] = Form.useForm();
   const [rules, setRules] = useState([]);
   const [users, setUsers] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
-  const { categorySelected } = useState([]);
 
   useEffect(async () => {
     try {
@@ -155,11 +58,19 @@ const Rules = () => {
         } else {
           stringPrice = 'None';
         }
+
+        const setValues = JSON.parse(rule.value);
+        const setData = {
+          setTitle: setValues.title,
+          setCategory: setValues.category,
+          setArchived: setValues.isArchived
+        };
         return {
           ...rule,
           key: rule.id,
           description_conditions: stringDescription,
-          price_conditions: stringPrice
+          price_conditions: stringPrice,
+          ...setData
         };
       });
       console.log(ruleData);
@@ -185,29 +96,24 @@ const Rules = () => {
       auth.token
     );
   };
+
   const onFinish = async (values) => {
+    values.conditions = values.conditions.map((condition) => {
+      return {
+        field: condition.option[0],
+        comparisonFunction: condition.option[1],
+        value: condition.value,
+        isNegative: condition.isNegative || false
+      };
+    });
+    values.type = values.type ?? 'EXPENSE';
+    values.value.isArchived = values.value.isArchived === 'YES';
     return await sendRequest(
       `${process.env.REACT_APP_SERVER_URL}/rules`,
       httpMethods.Post,
       auth.token,
-      JSON.stringify(values),
-      {
-        'Content-Type': 'application/json'
-      }
+      JSON.stringify(values)
     );
-  };
-
-  const handleCategoryChanged = (value) => {
-    console.log(value);
-  };
-
-  const onOptionChanged = (value, key) => {
-    console.log(value);
-    console.log(key);
-    // const fields = form.getFieldsValue()
-    // const { projects } = fields
-    // Object.assign(projects[key], { type: value })
-    // form.setFieldsValue({ projects })
   };
 
   const columns = [
@@ -232,30 +138,35 @@ const Rules = () => {
           dataIndex: 'price_conditions'
         },
         {
-          title: 'Source',
-          dataIndex: 'source'
-        },
-        {
           title: 'Type',
-          dataIndex: 'type'
+          dataIndex: 'type',
+          render: (type) => {
+            if (type === null) return 'Not Defined';
+            if (type === 'INCOME') return 'Income';
+            if (type === 'EXPENSE') return 'Expense';
+            return 'Unknown';
+          }
         }
       ]
     },
     {
-      title: 'Set Values',
-      key: 'set_values',
+      title: 'Values',
+      key: 'value',
       children: [
         {
-          title: 'Category',
-          dataIndex: 'category'
+          title: 'Title',
+          dataIndex: 'setTitle'
         },
         {
-          title: 'Title',
-          dataIndex: 'title'
+          title: 'Category',
+          dataIndex: 'setCategory'
         },
         {
           title: 'Archived',
-          dataIndex: 'archived'
+          dataIndex: 'setArchived',
+          render: (isArchived) => {
+            return isArchived ? 'Yes' : 'No';
+          }
         }
       ]
     }
@@ -263,131 +174,14 @@ const Rules = () => {
 
   return (
     <>
-      <Row>
+      <Row gutter={[16, 24]}>
         <Col span={24}>
           <Table dataSource={rules} columns={columns} bordered />;
         </Col>
       </Row>
       <Row>
-        <Col span={24}>
-          <Form
-            {...formItemLayout}
-            form={form}
-            name="nest-messages"
-            onFinish={onFinish}
-            validateMessages={validateMessages}>
-            <Form.Item
-              name={['config', 'title']}
-              label="Title"
-              rules={[
-                {
-                  required: true
-                }
-              ]}>
-              <Input />
-            </Form.Item>
-            <Divider>Conditions</Divider>
-            <Form.List name="conditions">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map((field) => (
-                    <Space key={field.key} align="baseline">
-                      <Form.Item
-                        {...field}
-                        name={[field.name, 'option']}
-                        label="Condition"
-                        rules={[{ type: 'array' }]}>
-                        <Cascader
-                          options={conditionsOptions}
-                          style={{ width: 200 }}
-                          onChange={(e) => onOptionChanged(e, field.key)}
-                        />
-                      </Form.Item>
-                      <Form.Item
-                        {...field}
-                        label="Value"
-                        name={[field.name, 'value']}
-                        rules={[
-                          {
-                            required: true,
-                            message: 'Missing value'
-                          }
-                        ]}>
-                        <Input />
-                      </Form.Item>
-                      <Form.Item>
-                        <Input.Group>
-                          <InputNumber
-                            style={{
-                              width: 100,
-                              textAlign: 'center'
-                            }}
-                            addonAfter="₪"
-                            placeholder="Minimum"
-                          />
-                          <Input
-                            className="site-input-split"
-                            style={{
-                              width: 30,
-                              borderLeft: 0,
-                              borderRight: 0,
-                              pointerEvents: 'none'
-                            }}
-                            placeholder="~"
-                            disabled
-                          />
-                          <InputNumber
-                            className="site-input-right"
-                            style={{
-                              width: 100,
-                              textAlign: 'center'
-                            }}
-                            addonAfter="₪"
-                            placeholder="Maximum"
-                          />
-                        </Input.Group>
-                      </Form.Item>
-                      <MinusCircleOutlined onClick={() => remove(field.name)} />
-                    </Space>
-                  ))}
-
-                  <Form.Item>
-                    <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                      Add sights
-                    </Button>
-                  </Form.Item>
-                </>
-              )}
-            </Form.List>
-            <Divider>Values</Divider>
-            <Form.Item name={['value', 'title']} label="Title">
-              <Input />
-            </Form.Item>
-            <Form.Item name={['value', 'category']} label="Category">
-              <TreeSelect
-                style={{ width: '100%' }}
-                value={categorySelected}
-                dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-                treeData={categoryList}
-                placeholder="Please select"
-                treeDefaultExpandAll
-                onChange={handleCategoryChanged}
-                allowClear={true}
-              />
-            </Form.Item>
-
-            <Form.Item name={['value', 'archived']} label="Archived">
-              <Radio.Group defaultValue="NO" size="small">
-                <Radio.Button value="NO">No</Radio.Button>
-                <Radio.Button value="YES">Yes</Radio.Button>
-              </Radio.Group>
-            </Form.Item>
-            <Form.Item wrapperCol={{ ...formItemLayout.wrapperCol, offset: 8 }}>
-              <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
-            </Form.Item>
-          </Form>
+        <Col xs={16} sm={16} md={20} lg={20} xl={20}>
+          <CreateRule categories={categoryList} submitRule={onFinish} />
         </Col>
       </Row>
     </>
