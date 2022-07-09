@@ -1,10 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import 'antd/dist/antd.css';
-import { Col, Row, Table } from 'antd';
+import { Col, Popconfirm, Row, Space, Table } from 'antd';
 import { AuthContext } from '../../shared/context/auth-context';
 import { useHttpClient } from '../../shared/hooks/http-hook';
 import { httpMethods } from '../../shared/hooks/enum';
 import CreateRule from '../../roles/components/createRule';
+import TransactionList from '../../transactions/components/TransactionsList';
+import { DeleteOutlined, DownOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { createNotification, notificationType } from '../../shared/Notification';
 
 const Rules = () => {
   const auth = useContext(AuthContext);
@@ -79,6 +82,59 @@ const Rules = () => {
       console.log(err);
     }
   }, []);
+
+  const handleDelete = async (id: number) => {
+    const responseData = await sendRequest(
+      `${process.env.REACT_APP_SERVER_URL}/rules/${id}`,
+      httpMethods.Delete,
+      auth.token
+    );
+    if (responseData?.type === 1) {
+      const newRules = [...rules].filter((rule) => rule.id !== id);
+      setRules(newRules);
+      createNotification(
+        notificationType.Success,
+        `Rule deleted successfully. ${responseData.data.transactions.length} has been reset`
+      );
+      // await updateTransactions();
+    } else {
+      createNotification(notificationType.Error, 'failed to delete rule');
+    }
+  };
+
+  const handleRunRule = async (id: number) => {
+    const responseData = await sendRequest(
+      `${process.env.REACT_APP_SERVER_URL}/rules/${id}/run`,
+      httpMethods.Post,
+      auth.token
+    );
+    if (responseData?.type === 1) {
+      createNotification(
+        notificationType.Success,
+        `Rule run successfully. ${responseData.data.transactions.length} has been set`
+      );
+    } else {
+      createNotification(notificationType.Error, 'failed to run rule');
+    }
+  };
+
+  const expandedRowRender = (row) => {
+    console.log(row);
+    return (
+      <Row>
+        <Col span={12}>
+          <TransactionList
+            filters={{ matchRuleId: row.id }}
+            addAction={false}
+            columnsType="minimize"
+          />
+        </Col>
+        <Col span={12}>
+          <TransactionList filters={{ ruleId: row.id }} addAction={false} columnsType="full" />
+        </Col>
+      </Row>
+    );
+  };
 
   const getInitData = async () => {
     const response = await sendRequest(
@@ -167,6 +223,23 @@ const Rules = () => {
           render: (isArchived) => {
             return isArchived ? 'Yes' : 'No';
           }
+        },
+        {
+          title: 'Action',
+          key: 'action',
+          sorter: true,
+          render: (_, record) => (
+            <Space size="middle">
+              <Popconfirm title="Sure to run rule?" onConfirm={() => handleRunRule(record.id)}>
+                <PlayCircleOutlined />
+              </Popconfirm>
+              <Popconfirm
+                title="Sure to delete? will reset related transactions"
+                onConfirm={() => handleDelete(record.id)}>
+                <DeleteOutlined />
+              </Popconfirm>
+            </Space>
+          )
         }
       ]
     }
@@ -176,7 +249,15 @@ const Rules = () => {
     <>
       <Row gutter={[16, 24]}>
         <Col span={24}>
-          <Table dataSource={rules} columns={columns} bordered />;
+          <Table
+            dataSource={rules}
+            columns={columns}
+            bordered
+            expandable={{
+              expandedRowRender,
+              defaultExpandedRowKeys: ['0']
+            }}
+          />
         </Col>
       </Row>
       <Row>

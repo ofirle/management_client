@@ -96,6 +96,7 @@ const Auth = () => {
         const responseData = await sendRequest(
           `${process.env.REACT_APP_SERVER_URL}/auth/signup`,
           httpMethods.Post,
+          null,
           formData
         );
         console.log(responseData);

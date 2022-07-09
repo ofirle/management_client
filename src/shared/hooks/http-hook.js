@@ -12,7 +12,23 @@ export const useHttpClient = () => {
   };
 
   const sendRequest = useCallback(async (url, method, authToken, body = null, headers = {}) => {
-    if ([httpMethods.Post, httpMethods.Patch, httpMethods.Put].includes(method)) {
+    if (
+      Object.prototype.hasOwnProperty.call(headers, 'Content-Type') &&
+      headers['Content-Type'] === 'multipart/form-data'
+    ) {
+      delete headers['Content-Type'];
+      // console.log(headers);
+      // let formBody = new FormData();
+      // for (const property in body) {
+      //   console.log(property);
+      //   console.log(body[property]);
+      //   formBody.append(property, body[property]);
+      // }
+
+      for (var key of body.entries()) {
+        console.log(key[0] + ', ' + key[1]);
+      }
+    } else if ([httpMethods.Post, httpMethods.Patch, httpMethods.Put].includes(method)) {
       basicHeaders['Content-Type'] = 'application/json';
     }
     setIsLoading(true);
@@ -21,6 +37,12 @@ export const useHttpClient = () => {
     const authHeader = authToken ? { Authorization: `Bearer ${authToken}` } : {};
     try {
       headers = { ...authHeader, ...basicHeaders, ...headers };
+      console.log({
+        method,
+        body,
+        headers,
+        signal: httpAbortCtrl.signal
+      });
       const response = await fetch(url, {
         method,
         body,

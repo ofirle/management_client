@@ -21,6 +21,7 @@ import { Option } from 'antd/es/mentions';
 import Text from 'antd/es/typography/Text';
 import { httpMethods } from '../../shared/hooks/enum';
 import TransactionList from '../components/TransactionsList';
+import UploadTransactions from '../components/UploadTransactions';
 
 const { RangePicker } = DatePicker;
 
@@ -67,10 +68,6 @@ const Transactions = () => {
       console.log(err);
     }
   }, []);
-
-  // const updateMaxAmount = (currentMaxAmount) => {
-  //   if (maxAmount < currentMaxAmount) setMaxAmount(currentMaxAmount);
-  // };
 
   const getRulesOptions = () => {
     return ruleList.map((rule) => {
@@ -243,11 +240,18 @@ const Transactions = () => {
     // updateTransactionsRule(ruleId);
   };
 
+  const handleFileUploaded = async () => {
+    setFilters({ ...filters });
+  };
+
   return (
     <>
+      <Row>
+        <UploadTransactions handleFileUploaded={handleFileUploaded} />
+      </Row>
       <Row gutter={[16, 24]}>
         <Col xs={16} sm={16} md={20} lg={20} xl={20}>
-          <TransactionList filters={filters} />
+          <TransactionList filters={filters} addAction={true} columnsType="full" />
           <br />
         </Col>
         <Col xs={8} sm={8} md={4} lg={4} xl={4}>
