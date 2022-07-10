@@ -14,6 +14,7 @@ const Rules = () => {
   const { sendRequest } = useHttpClient();
   const [rules, setRules] = useState([]);
   const [users, setUsers] = useState([]);
+  const [categoryListFlat, setCategoryListFlat] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
 
   useEffect(async () => {
@@ -23,6 +24,8 @@ const Rules = () => {
       const initData = await getInitData();
       setUsers(initData.users);
       setCategoryList(initData.categories);
+      const flatCategories = getFlatCategories(initData.categories);
+      setCategoryListFlat(flatCategories);
       const ruleData = rules.map((rule) => {
         let stringDescription = '';
         let stringPrice = '';
@@ -82,6 +85,18 @@ const Rules = () => {
       console.log(err);
     }
   }, []);
+
+  const getFlatCategories = (members) => {
+    let children = [];
+    const flattenMembers = members.map((m) => {
+      if (m.children && m.children.length) {
+        children = [...children, ...m.children];
+      }
+      return m;
+    });
+
+    return flattenMembers.concat(children.length ? getFlatCategories(children) : children);
+  };
 
   const handleDelete = async (id: number) => {
     const responseData = await sendRequest(
@@ -215,7 +230,24 @@ const Rules = () => {
         },
         {
           title: 'Category',
-          dataIndex: 'setCategory'
+          dataIndex: 'setCategory',
+          render: (categoryId) => {
+            if (categoryId) {
+              return (
+                categoryListFlat.find((category) => category.id == categoryId)?.title ??
+                `not found - ${categoryId}`
+              );
+
+              // console.log(categories);
+              // if (categories > 0) {
+              //   return categories[0]?.title;
+              // } else {
+              //   return `not found - ${categoryId}`;
+              // }
+            } else {
+              return '---';
+            }
+          }
         },
         {
           title: 'Archived',

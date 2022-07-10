@@ -228,7 +228,10 @@ const TransactionList = ({ filters, columnsType, addAction }) => {
           dataIndex: 'categoryId',
           render: (categoryId) => {
             if (categoryId) {
-              return categoryListFlat[categoryId].title;
+              return (
+                categoryListFlat.find((category) => category.id == categoryId)?.title ??
+                `not found - ${categoryId}`
+              );
             } else {
               return '---';
             }
@@ -465,7 +468,6 @@ const TransactionList = ({ filters, columnsType, addAction }) => {
           return getSummeryRow(total);
         }}
       />
-      {JSON.stringify(filters)}
     </div>
   );
 };
